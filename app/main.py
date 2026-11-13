@@ -243,6 +243,29 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+@app.get("/", tags=["meta"])
+async def root():
+    """Root endpoint — API identity, status and available routes."""
+    return {
+        "name": "Crypto Prices API",
+        "version": "1.0.0",
+        "status": "online",
+        "source": "CoinGecko Public API v3 (no key)",
+        "endpoints": {
+            "health": "GET /health",
+            "prices": "GET /v1/prices?ids=bitcoin,ethereum&vs_currency=usd",
+            "coins": "GET /v1/coins?limit=20&offset=0",
+            "coin_detail": "GET /v1/coins/{coin_id}",
+            "docs": "GET /docs",
+            "openapi": "GET /openapi.json",
+        },
+        "auth": {
+            "via_rapidapi": "X-RapidAPI-Key (sent by RapidAPI gateway)",
+            "origin_guard": "X-RapidAPI-Proxy-Secret (required on /v1/* for direct calls; requests without it return 401)",
+        },
+    }
+
+
 @app.get("/health", response_model=HealthResponse, tags=["meta"])
 async def health():
     return HealthResponse(

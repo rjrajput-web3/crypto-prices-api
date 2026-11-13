@@ -525,8 +525,8 @@ components:
       - type
       title: ValidationError
 servers:
-- url: https://crypto-prices-api.onrender.com
-  description: Render free tier — confirm URL after first deploy
+- url: https://crypto-prices-api-pi.vercel.app
+  description: Vercel Hobby (zero-card) — live, verified 2026-11-13
 x-mock-examples:
   GET /v1/prices?ids=bitcoin,ethereum&vs_currency=usd:
     vs_currency: usd

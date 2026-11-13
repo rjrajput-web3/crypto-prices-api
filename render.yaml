@@ -1,7 +1,7 @@
 # Render Blueprint — Crypto Prices API (free tier, $0, no card)
 # Deploy: Render dashboard → New → Blueprint → connect the
 # rjrajput-web3/crypto-prices-api repo → Apply. The service URL becomes
-# https://crypto-prices-api.onrender.com (Render appends a suffix if the
+# https://crypto-prices-api-pi.vercel.app (Render appends a suffix if the
 # name is taken — check the dashboard and update the OpenAPI servers:
 # entry + RapidAPI Studio base URL to match).
 services:
