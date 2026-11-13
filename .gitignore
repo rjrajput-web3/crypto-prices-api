@@ -3,5 +3,3 @@ __pycache__/
 .venv/
 tmp/
 .env
-vercel.json
-api/
