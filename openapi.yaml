@@ -526,7 +526,7 @@ components:
       title: ValidationError
 servers:
 - url: https://crypto-prices-api.onrender.com
-  description: Local dev server
+  description: Render free tier — confirm URL after first deploy
 x-mock-examples:
   GET /v1/prices?ids=bitcoin,ethereum&vs_currency=usd:
     vs_currency: usd
