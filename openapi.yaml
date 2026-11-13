@@ -1,0 +1,592 @@
+# Crypto Prices API — OpenAPI 3.1.0
+# Generated from the live FastAPI app (GET /openapi.json) on 2026-11-11.
+# Mock examples in x-mock-examples are verbatim excerpts of the real test run in TEST-LOG.md.
+openapi: 3.1.0
+info:
+  title: Crypto Prices API
+  description: Clean, paginated JSON over the CoinGecko Public API v3 (no key, no
+    login). Prices, top-coins market list, and per-coin detail with a TTL cache so
+    repeated calls do not hit the upstream every time. If CoinGecko is down, the API
+    returns 502 — never invented data.
+  contact:
+    name: Micro-API Builder
+  license:
+    name: 'Data: CoinGecko Public API (free, no key)'
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      tags:
+      - meta
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /v1/prices:
+    get:
+      tags:
+      - prices
+      summary: Current prices for 1+ coins
+      operationId: get_prices_v1_prices_get
+      parameters:
+      - name: ids
+        in: query
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Comma-separated CoinGecko coin ids, e.g. bitcoin,ethereum,solana
+          examples: bitcoin,ethereum
+          title: Ids
+        description: Comma-separated CoinGecko coin ids, e.g. bitcoin,ethereum,solana
+      - name: vs_currency
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^[a-z]{3}$
+          description: Quote currency (ISO code, e.g. usd, eur, inr)
+          examples: usd
+          default: usd
+          title: Vs Currency
+        description: Quote currency (ISO code, e.g. usd, eur, inr)
+      - name: include_market_cap
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Include market cap in the response
+          default: true
+          title: Include Market Cap
+        description: Include market cap in the response
+      - name: include_24h_change
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Include 24h % change in the response
+          default: true
+          title: Include 24H Change
+        description: Include 24h % change in the response
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PricesResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '502':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Gateway
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Service Unavailable
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/coins:
+    get:
+      tags:
+      - coins
+      summary: Top coins by market cap, paginated (limit/offset)
+      operationId: list_coins_v1_coins_get
+      parameters:
+      - name: vs_currency
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^[a-z]{3}$
+          examples: usd
+          default: usd
+          title: Vs Currency
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Page size (1-100)
+          default: 20
+          title: Limit
+        description: Page size (1-100)
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of coins to skip
+          default: 0
+          title: Offset
+        description: Number of coins to skip
+      - name: order
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^(market_cap_desc|market_cap_asc|volume_desc|volume_asc)$
+          default: market_cap_desc
+          title: Order
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCoinsResponse'
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Request
+        '502':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Gateway
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1/coins/{coin_id}:
+    get:
+      tags:
+      - coins
+      summary: Detail for one coin
+      operationId: get_coin_v1_coins__coin_id__get
+      parameters:
+      - name: coin_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Coin Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoinDetailResponse'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '502':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Bad Gateway
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    CoinDetailResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        symbol:
+          type: string
+          title: Symbol
+        name:
+          type: string
+          title: Name
+        description_en:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description En
+        homepage:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Homepage
+        market_cap_rank:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Market Cap Rank
+        current_price_usd:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Current Price Usd
+        market_cap_usd:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Market Cap Usd
+        price_change_percentage_24h:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Price Change Percentage 24H
+        last_updated:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Updated
+        cached:
+          type: boolean
+          title: Cached
+      type: object
+      required:
+      - id
+      - symbol
+      - name
+      - cached
+      title: CoinDetailResponse
+    CoinMarketItem:
+      properties:
+        id:
+          type: string
+          title: Id
+          examples:
+          - bitcoin
+        symbol:
+          type: string
+          title: Symbol
+          examples:
+          - btc
+        name:
+          type: string
+          title: Name
+          examples:
+          - Bitcoin
+        current_price:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Current Price
+          examples:
+          - 73841.0
+        market_cap:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Market Cap
+          examples:
+          - 1450000000000.0
+        market_cap_rank:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Market Cap Rank
+          examples:
+          - 1
+        price_change_percentage_24h:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Price Change Percentage 24H
+          examples:
+          - 1.23
+        total_volume:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Total Volume
+          examples:
+          - 25000000000.0
+        last_updated:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Updated
+          examples:
+          - '2026-11-11T08:28:00.000Z'
+      type: object
+      required:
+      - id
+      - symbol
+      - name
+      title: CoinMarketItem
+    ErrorResponse:
+      properties:
+        detail:
+          type: string
+          title: Detail
+          examples:
+          - Upstream CoinGecko API unavailable. Try again later.
+        code:
+          type: string
+          title: Code
+          examples:
+          - UPSTREAM_UNAVAILABLE
+        status:
+          type: integer
+          title: Status
+          examples:
+          - 502
+      type: object
+      required:
+      - detail
+      - code
+      - status
+      title: ErrorResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+          examples:
+          - ok
+        source:
+          type: string
+          title: Source
+          examples:
+          - CoinGecko Public API v3 (no key)
+        cache:
+          additionalProperties: true
+          type: object
+          title: Cache
+          examples:
+          - entries: 2
+      type: object
+      required:
+      - status
+      - source
+      - cache
+      title: HealthResponse
+    PaginatedCoinsResponse:
+      properties:
+        vs_currency:
+          type: string
+          title: Vs Currency
+        limit:
+          type: integer
+          title: Limit
+        offset:
+          type: integer
+          title: Offset
+        count:
+          type: integer
+          title: Count
+        total_fetched:
+          type: integer
+          title: Total Fetched
+          description: Coins fetched from upstream before pagination was applied.
+        cached:
+          type: boolean
+          title: Cached
+        coins:
+          items:
+            $ref: '#/components/schemas/CoinMarketItem'
+          type: array
+          title: Coins
+      type: object
+      required:
+      - vs_currency
+      - limit
+      - offset
+      - count
+      - total_fetched
+      - cached
+      - coins
+      title: PaginatedCoinsResponse
+    PriceItem:
+      properties:
+        id:
+          type: string
+          title: Id
+          examples:
+          - bitcoin
+        vs_currency:
+          type: string
+          title: Vs Currency
+          examples:
+          - usd
+        price:
+          type: number
+          title: Price
+          examples:
+          - 73841.0
+        market_cap:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Market Cap
+          examples:
+          - 1450000000000.0
+        change_24h_pct:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Change 24H Pct
+          examples:
+          - 1.23
+        last_updated:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Updated
+          examples:
+          - '2026-11-11T08:28:00.000Z'
+      type: object
+      required:
+      - id
+      - vs_currency
+      - price
+      title: PriceItem
+    PricesResponse:
+      properties:
+        vs_currency:
+          type: string
+          title: Vs Currency
+        count:
+          type: integer
+          title: Count
+        prices:
+          items:
+            $ref: '#/components/schemas/PriceItem'
+          type: array
+          title: Prices
+        cached:
+          type: boolean
+          title: Cached
+          description: True if served from the TTL cache.
+      type: object
+      required:
+      - vs_currency
+      - count
+      - prices
+      - cached
+      title: PricesResponse
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+servers:
+- url: https://crypto-prices-api.onrender.com
+  description: Local dev server
+x-mock-examples:
+  GET /v1/prices?ids=bitcoin,ethereum&vs_currency=usd:
+    vs_currency: usd
+    count: 2
+    cached: false
+    prices:
+    - id: bitcoin
+      vs_currency: usd
+      price: 73758.0
+      market_cap: 1483319803345.09
+      change_24h_pct: -0.9988
+      last_updated: '2026-11-11T08:31:41Z'
+    - id: ethereum
+      vs_currency: usd
+      price: 2057.57
+      market_cap: 378272778606.5
+      change_24h_pct: -2.427
+      last_updated: '2026-11-11T08:31:41Z'
+  GET /v1/coins?limit=3&offset=0:
+    vs_currency: usd
+    limit: 3
+    offset: 0
+    count: 3
+    total_fetched: 3
+    cached: false
+    coins:
+    - id: bitcoin
+      symbol: btc
+      name: Bitcoin
+      current_price: 73726.0
+      market_cap: 1482681720921.0
+      market_cap_rank: 1
+      price_change_percentage_24h: -1.12036
+      total_volume: 33390079578.0
+      last_updated: '2026-11-11T08:30:51.000Z'
+    - id: ethereum
+      symbol: eth
+      name: Ethereum
+      current_price: 2056.53
+      market_cap_rank: 2
+      price_change_percentage_24h: -2.54089
+      total_volume: 14326554545.0
+      last_updated: '2026-11-11T08:30:51.000Z'
+    - id: tether
+      symbol: usdt
+      name: Tether
+      current_price: 0.999039
+      market_cap_rank: 3
+      price_change_percentage_24h: -0.00488
+      total_volume: 54765083008.0
+      last_updated: '2026-11-11T08:30:51.000Z'
+  GET /v1/coins/not-a-real-coin-xyz (404):
+    detail: Coin not found on CoinGecko.
+    code: NOT_FOUND
+    status: 404
+  GET /v1/coins?limit=500 (422):
+    detail:
+    - type: less_than_equal
+      loc:
+      - query
+      - limit
+      msg: Input should be less than or equal to 100
+      input: '500'
